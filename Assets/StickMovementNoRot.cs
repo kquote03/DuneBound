@@ -51,6 +51,11 @@ public class StickMovement_Enhanced : MonoBehaviour
     [SerializeField] private float unplantHeightThreshold = 0.15f;
     [Tooltip("Allow pressing Jump (Space) to unplant the stick")]
     [SerializeField] private bool unplantOnJumpKey = true;
+    [Header("Character Gravity")]
+    [Tooltip("Gravity acceleration (negative value).")]
+    [SerializeField] private float gravity = -9.81f;
+    [Tooltip("Small downward snap when grounded to keep controller grounded")]
+    [SerializeField] private float groundedSnap = -1f;
     
     [Header("Debug")]
     [SerializeField] private bool showDebugRays = true;
@@ -59,6 +64,7 @@ public class StickMovement_Enhanced : MonoBehaviour
     private bool wasGroundedLastFrame = false;
     private bool isPlanted = false;
     private Vector3 stickPlantedPosition;
+    private float verticalVelocity = 0f;
     private Vector3 currentVelocity = Vector3.zero;
     private Vector3 lastStickPosition;
     private float lastPlayerY;
@@ -192,6 +198,14 @@ public class StickMovement_Enhanced : MonoBehaviour
             lastStickPosition = stickTarget.position;
         }
 
+        // Apply gravity and move character once per frame
+        ApplyGravity();
+        if (characterController != null)
+        {
+            Vector3 combined = currentVelocity + Vector3.up * verticalVelocity;
+            characterController.Move(combined * Time.deltaTime);
+        }
+
         // Track player vertical movement for unplant detection
         lastPlayerY = transform.position.y;
     }
@@ -202,6 +216,7 @@ public class StickMovement_Enhanced : MonoBehaviour
 
         // Get target position
         Vector3 targetPosition = stickTarget != null ? stickTarget.position : GetMouseWorldPosition();
+        
 
         // Update both arms to point at and stretch to the target
         if (leftArmBone != null) 
@@ -309,8 +324,7 @@ public class StickMovement_Enhanced : MonoBehaviour
                     // Apply damping
                     currentVelocity *= (1f - dragDamping * 0.5f * Time.deltaTime);
 
-                    // Move the character
-                    characterController.Move(currentVelocity * Time.deltaTime);
+                    // (movement will be applied centrally in Update)
 
                     // Debug visualization
                     if (showDebugRays)
@@ -354,7 +368,7 @@ public class StickMovement_Enhanced : MonoBehaviour
             currentVelocity *= (1f - dragDamping * Time.deltaTime);
 
             // Move the character
-            characterController.Move(currentVelocity * Time.deltaTime);
+            // movement applied centrally in Update
 
             // Debug visualization
             if (showDebugRays)
@@ -367,6 +381,22 @@ public class StickMovement_Enhanced : MonoBehaviour
         {
             // Too close - gradually stop
             currentVelocity = Vector3.Lerp(currentVelocity, Vector3.zero, dragDamping * Time.deltaTime);
+        }
+    }
+
+    private void ApplyGravity()
+    {
+        if (characterController == null) return;
+
+        if (characterController.isGrounded)
+        {
+            // small negative to keep grounded
+            if (verticalVelocity < 0f)
+                verticalVelocity = groundedSnap;
+        }
+        else
+        {
+            verticalVelocity += gravity * Time.deltaTime;
         }
     }
 
