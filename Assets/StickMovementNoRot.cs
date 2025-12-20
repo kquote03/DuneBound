@@ -22,6 +22,9 @@ public class StickMovement1 : MonoBehaviour
     [SerializeField] private bool stretchToReach = true;
     [SerializeField] private float originalArmLength = 1.0f;
     
+    [Tooltip("How many times the original length can the arm stretch?")]
+    [SerializeField] private float maxStretchMultiplier = 3.0f; 
+    
     [Header("Debug")]
     [SerializeField] private bool showDebugRays = true;
 
@@ -57,18 +60,42 @@ public class StickMovement1 : MonoBehaviour
 
         if (wallPlane.Raycast(ray, out float distance))
         {
-            Vector3 hitPoint = ray.GetPoint(distance);
+            Vector3 targetHitPoint = ray.GetPoint(distance);
 
-            // Move the stick target (not the character)
+            // --- NEW: CLAMPING LOGIC START ---
             if (stickTarget != null)
             {
-                stickTarget.position = hitPoint;
+                // 1. Determine the "Center" of the body/shoulders
+                // If we have both arms, use the center point between them. Otherwise use player position.
+                Vector3 anchorPoint = transform.position;
+                if (leftArmBone != null && rightArmBone != null)
+                {
+                    anchorPoint = (leftArmBone.position + rightArmBone.position) * 0.5f;
+                }
+
+                // 2. Calculate vector from body to mouse
+                Vector3 directionToMouse = targetHitPoint - anchorPoint;
+                float currentDistance = directionToMouse.magnitude;
+
+                // 3. Calculate Maximum Allowed Reach
+                float maxReach = originalArmLength * maxStretchMultiplier;
+
+                // 4. If mouse is too far, clamp the position
+                if (currentDistance > maxReach)
+                {
+                    // Normalize the direction and multiply by max reach to keep it on the edge
+                    targetHitPoint = anchorPoint + (directionToMouse.normalized * maxReach);
+                }
+
+                // Apply position
+                stickTarget.position = targetHitPoint;
             }
+            // --- NEW: CLAMPING LOGIC END ---
 
             if (showDebugRays)
             {
-                Debug.DrawLine(ray.origin, hitPoint, Color.green);
-                Debug.DrawRay(hitPoint, Vector3.up * 0.5f, Color.yellow);
+                Debug.DrawLine(ray.origin, targetHitPoint, Color.green);
+                Debug.DrawRay(targetHitPoint, Vector3.up * 0.5f, Color.yellow);
             }
         }
     } 
@@ -92,22 +119,17 @@ public class StickMovement1 : MonoBehaviour
     {
         Vector2 mousePixelPos = Mouse.current.position.ReadValue();
         Ray ray = mainCam.ScreenPointToRay(mousePixelPos);
-
-        // Define the "Gameplay Plane" (The invisible wall the cursor slides on)
         Plane gameplayPlane = new Plane(Vector3.right, transform.position);
 
         if (gameplayPlane.Raycast(ray, out float distance))
         {
             return ray.GetPoint(distance);
         }
-
-        // Fallback
         return transform.position;
     }
 
     private void UpdateArm(Transform arm, Vector3 targetPos, Vector3 offset)
     {
-        // 1. Calculate direction from arm to target
         Vector3 direction = targetPos - arm.position;
         
         if (showDebugRays)
@@ -115,29 +137,18 @@ public class StickMovement1 : MonoBehaviour
             Debug.DrawLine(arm.position, targetPos, Color.cyan);
         }
 
-        // 2. Calculate Angle in Y-Z plane (for side-view)
-        //    Atan2(y, z) gives the angle in the Y-Z plane
         float angle = Mathf.Atan2(direction.y, direction.z) * Mathf.Rad2Deg;
-
-        // 3. Apply Rotation around X-axis (this creates the hinge effect)
-        //    The negative angle is correct for Unity's coordinate system
         float finalX = -angle + offset.x;
         arm.localRotation = Quaternion.Euler(finalX, offset.y, offset.z);
 
-        // 4. Stretch the arm to reach the target
         if (stretchToReach)
         {
-            // Calculate distance to target
             float dist = direction.magnitude;
-            
-            // Calculate stretch factor based on original length
             float stretchFactor = dist / originalArmLength;
             
-            // Clamp to reasonable values (optional, prevents extreme stretching)
-            stretchFactor = Mathf.Clamp(stretchFactor, 0.5f, 3.0f);
+            // Limit the stretch factor visually as well, using the new variable
+            stretchFactor = Mathf.Clamp(stretchFactor, 0.5f, maxStretchMultiplier);
 
-            // Apply stretch along the bone's local Y-axis (typical Unity bone orientation)
-            // If your bones are oriented differently, try (stretchFactor, 1, 1) or (1, 1, stretchFactor)
             arm.localScale = new Vector3(1, stretchFactor, 1);
         }
         else
