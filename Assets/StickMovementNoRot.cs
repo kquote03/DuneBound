@@ -43,14 +43,25 @@ public class StickMovement_Enhanced : MonoBehaviour
     [SerializeField] private bool requireGroundedToDrag = true;
     [Tooltip("Force applied to player when stick pushes against ground")]
     [SerializeField] private float groundPushForce = 15f;
+    [Tooltip("Maximum upward velocity allowed from a grounded stick push (prevent big jumps)")]
+    [SerializeField] private float maxUpwardPush = 0.2f;
+    [Tooltip("If true, stick will 'plant' to ground when contacting it")]
+    [SerializeField] private bool enablePlanting = true;
+    [Tooltip("Height player must move up to unplant the stick")]
+    [SerializeField] private float unplantHeightThreshold = 0.15f;
+    [Tooltip("Allow pressing Jump (Space) to unplant the stick")]
+    [SerializeField] private bool unplantOnJumpKey = true;
     
     [Header("Debug")]
     [SerializeField] private bool showDebugRays = true;
 
     private Vector3 lastGroundedPosition;
     private bool wasGroundedLastFrame = false;
+    private bool isPlanted = false;
+    private Vector3 stickPlantedPosition;
     private Vector3 currentVelocity = Vector3.zero;
     private Vector3 lastStickPosition;
+    private float lastPlayerY;
 
     void Start()
     {
@@ -89,6 +100,7 @@ public class StickMovement_Enhanced : MonoBehaviour
         {
             lastStickPosition = stickTarget.position;
         }
+        lastPlayerY = transform.position.y;
     }
 
     void SetupStickPhysics()
@@ -118,8 +130,41 @@ public class StickMovement_Enhanced : MonoBehaviour
         // Check if stick is grounded
         CheckGroundContact();
 
-        // Move the stick target based on mouse
-        if (!isStickGrounded || !requireGroundedToDrag)
+        // If planted, check unplant conditions (player upward motion or jump key)
+        if (isPlanted)
+        {
+            bool unplant = false;
+            if (unplantOnJumpKey && UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
+                    unplant = true;
+            }
+
+            float deltaY = transform.position.y - lastPlayerY;
+            if (deltaY > unplantHeightThreshold) unplant = true;
+
+            // Also unplant if the player is attempting to pull the stick upward with the mouse
+            Vector3 mouseWorld = GetMouseWorldPosition();
+            if (mouseWorld.y - stickPlantedPosition.y > unplantHeightThreshold) unplant = true;
+
+            if (unplant)
+            {
+                isPlanted = false;
+                wasGroundedLastFrame = false;
+                isStickGrounded = false;
+            }
+            else
+            {
+                // keep stick planted
+                if (stickTarget != null)
+                {
+                    stickTarget.position = stickPlantedPosition;
+                }
+            }
+        }
+
+        // Move the stick target based on mouse (only if not planted)
+        if (!isPlanted && (!isStickGrounded || !requireGroundedToDrag))
         {
             UpdateStickTargetPosition();
         }
@@ -146,6 +191,9 @@ public class StickMovement_Enhanced : MonoBehaviour
         {
             lastStickPosition = stickTarget.position;
         }
+
+        // Track player vertical movement for unplant detection
+        lastPlayerY = transform.position.y;
     }
 
     void LateUpdate()
@@ -178,10 +226,15 @@ public class StickMovement_Enhanced : MonoBehaviour
         RaycastHit hitInfo;
         isStickGrounded = Physics.Raycast(origin, Vector3.down, out hitInfo, castDistance, mask);
 
-        // Save contact point when grounded
+        // Save contact point when grounded and optionally plant the stick
         if (isStickGrounded && !wasGroundedLastFrame)
         {
             lastGroundedPosition = hitInfo.point;
+            if (enablePlanting)
+            {
+                isPlanted = true;
+                stickPlantedPosition = hitInfo.point;
+            }
         }
 
         wasGroundedLastFrame = isStickGrounded;
@@ -236,9 +289,16 @@ public class StickMovement_Enhanced : MonoBehaviour
                 {
                     // Calculate push based on how far mouse is trying to move the stick
                     float mousePullDistance = stickToMouse.magnitude;
-                    
-                    // Push player in the direction created by the lever action
-                    Vector3 targetVelocity = pushDirection * groundPushForce * Mathf.Clamp01(mousePullDistance);
+
+                    // Push player in the opposite direction of the stick->mouse vector
+                    // (the stick pushing against the ground should push the player away)
+                    Vector3 targetVelocity = -pushDirection * groundPushForce * Mathf.Clamp01(mousePullDistance);
+
+                    // Prevent large upward movement from grounded pushes
+                    if (targetVelocity.y > maxUpwardPush)
+                    {
+                        targetVelocity.y = maxUpwardPush;
+                    }
                     
                     currentVelocity = Vector3.Lerp(
                         currentVelocity,
