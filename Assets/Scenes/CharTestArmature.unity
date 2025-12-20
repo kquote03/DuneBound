@@ -124,6 +124,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -847750810704252955, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
   m_PrefabInstance: {fileID: 1432208627}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &483102600 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -1060573650118551592, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
+  m_PrefabInstance: {fileID: 1432208627}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &642489527 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4384933331230663756, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
@@ -161,7 +166,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 685879692}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dd6a7857d70dc27b791705ea239d0297, type: 3}
   m_Name: 
@@ -178,8 +183,8 @@ MonoBehaviour:
   maxStretchMultiplier: 2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 4294967295
-  groundCheckDistance: 0.2
+    m_Bits: 64
+  groundCheckDistance: 0.01
   isStickGrounded: 0
   characterController: {fileID: 1807324047}
   dragSpeed: 5
@@ -215,9 +220,30 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.0005
-  m_Height: 0.025
+  m_Height: 0.01
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.007, z: 0}
+--- !u!114 &685879698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 685879692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8a169858a1a0bd6d8aebfac86ad9f8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StickMovementFinal
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  theFuckingStick: {fileID: 685879692}
+  theEndOfTheFuckingStick: {fileID: 1941840812}
+  LeftArm: {fileID: 1808877550}
+  RightArm: {fileID: 483102600}
+  PlayerBody: {fileID: 1807324044}
+  maxAllowedDistance: 1.5
 --- !u!1 &986395903
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,6 +496,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6905609870639353253, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
       insertIndex: -1
       addedObject: {fileID: 685879697}
+    - targetCorrespondingSourceObject: {fileID: 6905609870639353253, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 685879698}
   m_SourcePrefab: {fileID: 100100000, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
 --- !u!1 &1807324044 stripped
 GameObject:
@@ -541,6 +570,16 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1808877550 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5829339358953312895, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
+  m_PrefabInstance: {fileID: 1432208627}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1941840812 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8719771546195959716, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
+  m_PrefabInstance: {fileID: 1432208627}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2039180733
 GameObject:
   m_ObjectHideFlags: 0
@@ -553,7 +592,7 @@ GameObject:
   - component: {fileID: 2039180736}
   - component: {fileID: 2039180735}
   - component: {fileID: 2039180734}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}

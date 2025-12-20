@@ -234,21 +234,24 @@ public class StickMovement_Enhanced : MonoBehaviour
         int mask = groundLayer.value;
         if (mask == 0) mask = Physics.DefaultRaycastLayers;
 
-        // Cast from slightly above the stick straight down (use world up/down to avoid local-rotation issues)
-        Vector3 origin = stickTarget.position + Vector3.up * 0.1f;
-        float castDistance = (stickCollider.height * 0.5f) + groundCheckDistance + 0.1f;
-
-        RaycastHit hitInfo;
-        isStickGrounded = Physics.Raycast(origin, Vector3.down, out hitInfo, castDistance, mask);
+        // Get the bottom of the stick collider
+        Vector3 stickColliderCenter = stickTarget.position + stickCollider.center;
+        float colliderBottom = stickColliderCenter.y - (stickCollider.height * 0.5f);
+        
+        // Check for overlap with ground layer at the bottom of the collider
+        Vector3 checkPosition = new Vector3(stickColliderCenter.x, colliderBottom, stickColliderCenter.z);
+        Collider[] groundColliders = Physics.OverlapSphere(checkPosition, groundCheckDistance, mask);
+        
+        isStickGrounded = groundColliders.Length > 0;
 
         // Save contact point when grounded and optionally plant the stick
         if (isStickGrounded && !wasGroundedLastFrame)
         {
-            lastGroundedPosition = hitInfo.point;
+            lastGroundedPosition = checkPosition;
             if (enablePlanting)
             {
                 isPlanted = true;
-                stickPlantedPosition = hitInfo.point;
+                stickPlantedPosition = checkPosition;
             }
         }
 
@@ -257,12 +260,8 @@ public class StickMovement_Enhanced : MonoBehaviour
         // Debug visualization
         if (showDebugRays)
         {
-            Color rayColor = isStickGrounded ? Color.green : Color.red;
-            Debug.DrawRay(origin, Vector3.down * castDistance, rayColor);
-            if (isStickGrounded)
-            {
-                Debug.DrawLine(hitInfo.point, hitInfo.point + Vector3.up * 0.2f, Color.green);
-            }
+            Color sphereColor = isStickGrounded ? Color.green : Color.red;
+            Debug.DrawLine(checkPosition, checkPosition + Vector3.up * 0.2f, sphereColor);
         }
     }
 
