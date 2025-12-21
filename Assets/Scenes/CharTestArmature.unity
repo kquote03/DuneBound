@@ -124,6 +124,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -847750810704252955, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
   m_PrefabInstance: {fileID: 1432208627}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &374933451 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5749194133564681329, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
+  m_PrefabInstance: {fileID: 1432208627}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &483102600 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -1060573650118551592, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
@@ -210,7 +215,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -235,6 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8a169858a1a0bd6d8aebfac86ad9f8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StickMovementFinal
+  state: 0
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -244,6 +250,10 @@ MonoBehaviour:
   RightArm: {fileID: 483102600}
   PlayerBody: {fileID: 1807324044}
   maxAllowedDistance: 1.5
+  EndOfArm: {fileID: 374933451}
+  maxRayDist: 0.2
+  player: {fileID: 1807324049}
+  StickOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &986395903
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,6 +497,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1807324047}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1807324049}
     - targetCorrespondingSourceObject: {fileID: 6905609870639353253, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
       insertIndex: -1
       addedObject: {fileID: 685879694}
@@ -570,6 +583,19 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1807324049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1807324044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bf1df3daf4ae7a3c881e762f7fdc42e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player
+  characterController: {fileID: 0}
 --- !u!1 &1808877550 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5829339358953312895, guid: 600e07eb2152caa4fb3ef8c282cd9c26, type: 3}
@@ -686,7 +712,7 @@ Transform:
   m_GameObject: {fileID: 2039180733}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.74157, y: -2.97, z: 0.01}
+  m_LocalPosition: {x: -2.74157, y: -1.54, z: 0.01}
   m_LocalScale: {x: -9.5, y: 0.89, z: -16.22}
   m_ConstrainProportionsScale: 0
   m_Children: []
