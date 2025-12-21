@@ -25,7 +25,6 @@ public class Player : MonoBehaviour
 
         if (characterController.isGrounded)
         {
-            Debug.Log("GROUNDED.");
             ;
         }
         else
