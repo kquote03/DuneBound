@@ -1,22 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System;
-using UnityEngine.UIElements;
+using TMPro;
 
 public class StickMovementFinal : MonoBehaviour
 {
-    public enum StickState
-    {
-        FREE,
-        LOCKED
-    }
-
-
-    [SerializeField] public StickState state = StickState.FREE;
 
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private GameObject theFuckingStick; // Better naming
-    [SerializeField] private GameObject theEndOfTheFuckingStick; // Greater naming
+    [SerializeField] private GameObject TheStick;
+    [SerializeField] private GameObject theEndOfTheFuckingStick;
 
 
     [SerializeField] private GameObject LeftArm;
@@ -25,58 +16,55 @@ public class StickMovementFinal : MonoBehaviour
     [SerializeField] private GameObject PlayerBody;
     [SerializeField] public float maxAllowedDistance = 1.5f;
     [SerializeField] public GameObject EndOfArm;
-    [SerializeField] float maxRayDist = 0.2f;
     [SerializeField] Player player;
-
+    [SerializeField] TextMeshProUGUI textMesh;
+    [SerializeField] private CapsuleCollider stickCollider;
     //[SerializeField] public float soemthig;
     private Camera mainCam;
 
     private Vector3 armOffset = new Vector3(63, 0, 0);
     [SerializeField] public Vector3 StickOffset;
-
+    private Mouse mouse;
+    bool canMoveStick = true;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         int mask = groundLayer.value;
         mainCam = Camera.main;
-
+        mouse = Mouse.current;
     }
 
     // Update is called once per frame
     void Update()
     {
-
         Vector3 mousePos = GetMouseWorldPosition();
-        IfMouseDirectionDownwards();
+        Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+        textMesh.text = $"Mouse Delta: {mouseDelta}";
 
-        if (CheckForGround())
+
+        if (mouse.leftButton.isPressed && CheckForGround())
         {
-            state = StickState.LOCKED;
+            canMoveStick = false;
+            PlayerBody.transform.position += new Vector3(0, mouseDelta.y, mouseDelta.x) * -0.01f;
+            UpdateArms();
+        }
+        else
+        {
+            canMoveStick = true;
         }
 
-        if (state == StickState.FREE)
+        if (canMoveStick)
         {
-            theFuckingStick.transform.position = (EndOfArm.transform.position - StickOffset);
-            Vector3 offset = transform.position - PlayerBody.transform.position;
-            UpdateArm(LeftArm.transform, GetMouseWorldPosition(), armOffset);
-            UpdateArm(RightArm.transform, GetMouseWorldPosition(), armOffset);
-        }
-        else if (state == StickState.LOCKED)
-        {
-            if (IfMouseDirectionUpwards())
-            {
-                // Give an upward bit to 'lodge' it out of the ground
-                //transform.position = new Vector3(transform.position.x, transform.position.y+1, transform.position.z);
-                state = StickState.FREE;
-            }
-            
-            if (IfMouseDirectionDownwards())
-            {
-                
-            }
+            TheStick.transform.position = EndOfArm.transform.position - StickOffset;
+            UpdateArms();
         }
     }
 
+    private void UpdateArms()
+    {
+        UpdateArm(LeftArm.transform, GetMouseWorldPosition(), armOffset);
+        UpdateArm(RightArm.transform, GetMouseWorldPosition(), armOffset);
+    }
 
     private Vector3 GetMouseWorldPosition()
     {
@@ -109,50 +97,56 @@ public class StickMovementFinal : MonoBehaviour
         arm.localScale = new Vector3(1, stretchFactor, 1);
     }
 
-    public bool CheckForGround()
+    //public bool CheckForGround()
+    //{
+    //    RaycastHit rayInfo;
+
+    //    bool GroundTouch = transform.GetComponentInChildren<CapsuleCollider>().Raycast(new Ray(transform.position, Vector3.down), out rayInfo, maxRayDist);
+    //    //bool GroundTouch = Physics.CheckCapsule(theFuckingStick.transform.position, Vector3.down, 0.1f);
+    //    Debug.Log(GroundTouch);
+
+    //    return GroundTouch;
+    //}
+
+    //    public bool IfMouseDirectionUpwards()
+    //{
+    //    if (Mouse.current != null)
+    //    {
+    //        Vector2 delta = Mouse.current.delta.ReadValue();
+    //        
+    //        // Change < 0 to > 0 for upward movement
+    //        if (delta.y > 0 && Mathf.Abs(delta.x) < 1 )
+    //        {
+    //            Debug.Log("Upwards");
+    //            return true;
+    //        }
+    //    }
+    //    
+    //    return false;
+    //}
+    //
+    //public bool IfMouseDirectionDownwards()
+    //    {
+    //        if(Mouse.current != null)
+    //        {
+    //            Vector2 delta = Mouse.current.delta.ReadValue();
+    //            textMesh.text = $"Mouse Delta: {delta}"; 
+    //            if(delta.y < 0)
+    //            {
+    //                Debug.Log("Downwards");
+    //                return true;
+    //            }
+    //        } else
+    //        {
+    //            return false;
+    //        }
+    //
+    //        return false;
+    //    }
+
+    private bool CheckForGround()
     {
-        RaycastHit rayInfo;
-
-
-        bool GroundTouch = transform.GetComponentInChildren<CapsuleCollider>().Raycast(new Ray(transform.position, Vector3.down), out rayInfo, maxRayDist);
-        Debug.Log(GroundTouch);
-
-        return GroundTouch;
-    }
-
-    public bool IfMouseDirectionUpwards()
-{
-    if (Mouse.current != null)
-    {
-        Vector2 delta = Mouse.current.delta.ReadValue();
-        
-        // Change < 0 to > 0 for upward movement
-        if (delta.y > 0)
-        {
-            Debug.Log("Upwards");
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-public bool IfMouseDirectionDownwards()
-    {
-        if(Mouse.current != null)
-        {
-            Vector2 delta = Mouse.current.delta.ReadValue();
-            if(delta.y < 0)
-            {
-                Debug.Log("Downwards");
-                return true;
-            }
-        } else
-        {
-            return false;
-        }
-
-        return false;
+        return Physics.CheckCapsule(TheStick.transform.position, theEndOfTheFuckingStick.transform.position + new Vector3(0, 0.01f, 0), 0.0005f, layerMask: groundLayer);
     }
 
 }
