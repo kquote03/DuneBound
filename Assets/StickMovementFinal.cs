@@ -14,7 +14,7 @@ public class StickMovementFinal : MonoBehaviour
     [SerializeField] private GameObject RightArm;
 
     [SerializeField] private GameObject PlayerBody;
-    [SerializeField] public float maxAllowedDistance = 1.5f;
+    [SerializeField] public float maxAllowedDistance = 0.5f;
     [SerializeField] public GameObject EndOfArm;
     [SerializeField] Player player;
     [SerializeField] TextMeshProUGUI textMesh;
@@ -46,7 +46,7 @@ public class StickMovementFinal : MonoBehaviour
         {
             canMoveStick = false;
             PlayerBody.transform.position += new Vector3(0, mouseDelta.y, mouseDelta.x) * -0.01f;
-            UpdateArms();
+            UpdateArms(GetMouseWorldPosition());
         }
         else
         {
@@ -55,15 +55,15 @@ public class StickMovementFinal : MonoBehaviour
 
         if (canMoveStick)
         {
-            TheStick.transform.position = EndOfArm.transform.position - StickOffset;
-            UpdateArms();
+            TheStick.transform.position = EndOfArm.transform.position;// - StickOffset;
+            UpdateArms(GetMouseWorldPosition());
         }
     }
 
-    private void UpdateArms()
+    private void UpdateArms(Vector3 target)
     {
-        UpdateArm(LeftArm.transform, GetMouseWorldPosition(), armOffset);
-        UpdateArm(RightArm.transform, GetMouseWorldPosition(), armOffset);
+        UpdateArm(LeftArm.transform, target, armOffset);
+        UpdateArm(RightArm.transform, target, armOffset);
     }
 
     private Vector3 GetMouseWorldPosition()
@@ -92,57 +92,10 @@ public class StickMovementFinal : MonoBehaviour
         float stretchFactor = dist;
 
         // Limit the stretch factor visually
-        stretchFactor = Mathf.Clamp(stretchFactor, 0.5f, 2); //Max Stretch Multiplier at the end
+        stretchFactor = Mathf.Clamp(stretchFactor, 0.1f, maxAllowedDistance); //Max Stretch Multiplier at the end
 
         arm.localScale = new Vector3(1, stretchFactor, 1);
     }
-
-    //public bool CheckForGround()
-    //{
-    //    RaycastHit rayInfo;
-
-    //    bool GroundTouch = transform.GetComponentInChildren<CapsuleCollider>().Raycast(new Ray(transform.position, Vector3.down), out rayInfo, maxRayDist);
-    //    //bool GroundTouch = Physics.CheckCapsule(theFuckingStick.transform.position, Vector3.down, 0.1f);
-    //    Debug.Log(GroundTouch);
-
-    //    return GroundTouch;
-    //}
-
-    //    public bool IfMouseDirectionUpwards()
-    //{
-    //    if (Mouse.current != null)
-    //    {
-    //        Vector2 delta = Mouse.current.delta.ReadValue();
-    //        
-    //        // Change < 0 to > 0 for upward movement
-    //        if (delta.y > 0 && Mathf.Abs(delta.x) < 1 )
-    //        {
-    //            Debug.Log("Upwards");
-    //            return true;
-    //        }
-    //    }
-    //    
-    //    return false;
-    //}
-    //
-    //public bool IfMouseDirectionDownwards()
-    //    {
-    //        if(Mouse.current != null)
-    //        {
-    //            Vector2 delta = Mouse.current.delta.ReadValue();
-    //            textMesh.text = $"Mouse Delta: {delta}"; 
-    //            if(delta.y < 0)
-    //            {
-    //                Debug.Log("Downwards");
-    //                return true;
-    //            }
-    //        } else
-    //        {
-    //            return false;
-    //        }
-    //
-    //        return false;
-    //    }
 
     private bool CheckForGround()
     {
